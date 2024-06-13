@@ -82,7 +82,26 @@ def edit_chunk(img: Image.Image, rect: Rect, total: tuple[int, int, int], colore
             if (white <= 0):
                 break
             
-    
+
+def block(image: Image.Image, point: tuple[int, int], size:int = 2) -> tuple[int,int,int]:
+    (xsize, ysize) = image.size
+    output = list(map(lambda c: c//2 - 10, image.getpixel(point)))
+    impact_inv = 3*(size*size - 1)
+    for iy in range(-size, size+1):
+        for ix in range(-size, size+1):
+            if (iy == 0 and ix==0): continue
+            ry = (point[1] + iy) % ysize
+            rx = (point[0] + ix) % xsize
+            sign = 1
+            if (iy + ix)%2==1:
+                sign = -1
+            color = image.getpixel((rx, ry))
+            for c in range(3):
+                output[c] += int(sign*color[c]*impact_inv)
+    for i in range(3):
+        output[i] = max(0, min(255, output[i] - 5*size))
+    return tuple(output)
+            
 
 
 def alg(image: Image.Image, chunksize: int) -> Image.Image:
@@ -104,7 +123,7 @@ def alg(image: Image.Image, chunksize: int) -> Image.Image:
     
     while (1):
         # doing smth...
-        color = image.getpixel((x,y))
+        color = block(image, (x,y), 3)
         totalr, totalg, totalb = totalr + color[0], totalg + color[1], totalb + color[2]
         # done smth 
         x += 1
@@ -127,7 +146,7 @@ def alg(image: Image.Image, chunksize: int) -> Image.Image:
                     
                 y = yold
             x = xold
-    
+    """
     KOEF = 0.1
     for ly in range(chy):
         for lx in range(chx):
@@ -167,11 +186,11 @@ def alg(image: Image.Image, chunksize: int) -> Image.Image:
                 chunk.totalr -= r
                 chunk.totalg -= g
                 chunk.totalb -= b
-            except: pass
+            except: pass"""
     
     for ly in range(chy):
         for lx in range(chx):
             chunk = chunks[ly][lx]
-            edit_chunk(img, chunk.rect, (chunk.totalr, chunk.totalg, chunk.totalb), True)
+            edit_chunk(img, chunk.rect, (chunk.totalr, chunk.totalg, chunk.totalb), False)
                         
     return img
